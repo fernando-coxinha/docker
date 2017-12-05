@@ -1,0 +1,10 @@
+*.zip
+*.rpm
+data/
+conf/local.wiremock
+examples
+.idea
+node_modules
+prometheus
+conf/hybrislicence.jar
+config

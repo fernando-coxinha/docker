@@ -1,0 +1,85 @@
+version: "3.3"
+services:
+    frontend:
+        build:
+            context: .
+            dockerfile: ./front-end/Dockerfile
+        image: frontend:9.2.0
+        ports:
+            - "8081:8081"
+        expose:
+            - "8081"
+        container_name: frontend
+        networks:
+            - hybris-network
+        volumes:
+          - type: nfs
+            source: ./source/${BRANCH}/storefront/web/webroot/
+            target: /webroot/
+
+        tty: true
+
+    wiremock:
+        build:
+            context: .
+            dockerfile: ./wiremock/Dockerfile
+        image: wiremock:2.7.1
+        ports:
+            - "8888:8888"
+        container_name: wiremock
+        networks:
+            - hybris-network
+
+    hybris:
+        environment:
+            - hyInit= "n"
+            - hyInitSystem= "n"
+            - hysAnt= "n"
+            - hyCopyLocal= "n"
+            - hysAntCleanAll= "n"
+            - hysServer= "n"
+            - hysServerDebug= "n"
+            - hysDeploy= "n"
+            - hysAutoComment= "n"
+            - hyWireMock= "n"
+            - hyNewBranch= "n"
+            - hyCopyProperties= "n"
+            - hyCopyExtensions= "n"
+            - hyNameBranch= "n"
+        build:
+            context: .
+            dockerfile: ./hybris/Dockerfile
+        image: hybris:5.7.0.28
+        container_name: hybris
+        ports:
+            - "9001:9001"
+            - "9002:9002"
+            - "3306:3306"
+            - "8983:8983"
+            - "8000:8000"
+            - "8009:8009"
+            - "8010:8010"
+            - "1099:1099"
+            - "8001:8001"
+            - "8080:8080"
+            - "8787:8787"
+            - "9999:9999"
+
+        volumes:
+          - type: nfs
+            source: ./data/
+            target: /hybris/5.7.0.28/hybris/data
+          - type: nfs
+            source: ./config/
+            target: /hybris/config
+          - type: nfs
+            source: ./source/${BRANCH}
+            target: /hybris/5.7.0.28/hybris/bin/custom
+          - type: nfs
+            source: ./bin/hybris-wrapper.sh
+            target: /hybris/5.7.0.28/hybris/bin/platform/hybris-wrapper.sh
+        tty: true
+            
+networks:
+  hybris-network:
+    driver: bridge
